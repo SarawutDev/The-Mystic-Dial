@@ -1,0 +1,56 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Murder Mosaic - เกมรหัสลับโบราณ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Maitree:wght@400;700&family=Cinzel+Decorative:wght@700&display=swap');
+        
+        body {
+            font-family: 'Maitree', serif;
+            background: #050505;
+            color: #e2e8f0;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .mystic-font {
+            font-family: 'Cinzel Decorative', cursive;
+        }
+
+        .glow-filter {
+            filter: drop-shadow(0 0 8px rgba(220, 38, 38, 0.3));
+        }
+
+        .unlock-anim {
+            animation: unlock-flare 1.5s ease-out forwards;
+        }
+
+        @keyframes unlock-flare {
+            0% { filter: brightness(1) blur(0px); transform: scale(1); }
+            50% { filter: brightness(2) blur(5px); transform: scale(1.02); }
+            100% { filter: brightness(1.1) blur(0px); transform: scale(1); }
+        }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "lucide-react": "https://esm.sh/lucide-react@0.463.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0"
+  }
+}
+</script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
+</body>
+</html>
