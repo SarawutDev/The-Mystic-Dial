@@ -17,9 +17,15 @@ const STATIC_CHALLENGES = [
 ];
 
 export async function generateSecretChallenge(customTheme = "") {
-  if (!process.env.API_KEY) return STATIC_CHALLENGES[Math.floor(Math.random() * STATIC_CHALLENGES.length)];
+  // ป้องกัน Error บน GitHub Pages หรือ Browser ทั่วไปที่ไม่มี process.env
+  const apiKey = typeof process !== 'undefined' && process.env ? process.env.API_KEY : null;
+  
+  if (!apiKey) {
+    console.warn("No API Key found, using static challenges.");
+    return STATIC_CHALLENGES[Math.floor(Math.random() * STATIC_CHALLENGES.length)];
+  }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: apiKey });
   const themePrompt = customTheme 
     ? `The theme for this discovery is: "${customTheme}". Make it very exciting and related to this theme.`
     : "Generate a cryptic discovery found inside a high-tech corporate vault.";

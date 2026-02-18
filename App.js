@@ -123,12 +123,16 @@ const App = () => {
 
   const currentNode = nodesData[activeNodeIndex];
 
+  // ตรวจสอบว่าวงแหวนทุกชั้นตรงกันหรือไม่ (0 องศา หรือ 360 องศา)
+  const isSolved = currentNode.rotations[RingLayer.OUTER] % 360 === 0 && 
+                   currentNode.rotations[RingLayer.MIDDLE] % 360 === 0;
+
   return html`
     <div className="puzzle-container p-4 overflow-y-auto overflow-x-hidden">
       <!-- Responsive Dial Wrapper -->
       <div 
         ref=${containerRef}
-        className="relative w-full aspect-square max-w-[320px] sm:max-w-[480px] lg:max-w-[580px] rounded-full border-[10px] sm:border-[16px] border-[#0c111d] bg-[#020617] shadow-[0_0_100px_rgba(0,0,0,0.9)] transition-all duration-700 mx-auto overflow-visible"
+        className=${`relative w-full aspect-square max-w-[320px] sm:max-w-[480px] lg:max-w-[580px] rounded-full border-[10px] sm:border-[16px] border-[#0c111d] bg-[#020617] shadow-[0_0_100px_rgba(0,0,0,0.9)] transition-all duration-700 mx-auto overflow-visible ${isSolved ? 'solved-glow' : ''}`}
       >
         <svg viewBox="0 0 500 500" className="w-full h-full touch-none" style=${{ overflow: 'visible' }}>
           <!-- Grid Background Effect -->
@@ -175,24 +179,24 @@ const App = () => {
           <!-- Static High-Tech Question Mark Center Piece -->
           <g transform="translate(250, 250)">
             <!-- Decorative Ring (Static) -->
-            <circle r="44" fill="none" stroke="#10b981" strokeWidth="0.5" strokeDasharray="4,8" opacity="0.3" />
+            <circle r="44" fill="none" stroke=${isSolved ? "#34d399" : "#10b981"} strokeWidth="0.5" strokeDasharray="4,8" opacity="0.3" />
             
             <!-- Main Circular Base -->
-            <circle r="36" fill="#020617" stroke="#10b981" strokeWidth="2" filter="url(#core-glow)" />
+            <circle r="36" fill="#020617" stroke=${isSolved ? "#34d399" : "#10b981"} strokeWidth=${isSolved ? "3" : "2"} filter="url(#core-glow)" />
             
             <!-- Energy Field (Static) -->
-            <circle r="32" fill="#064e3b" opacity="0.5" />
+            <circle r="32" fill=${isSolved ? "#064e3b" : "#064e3b"} opacity=${isSolved ? "0.8" : "0.5"} />
 
             <!-- Question Mark Symbol (Static) -->
             <text 
               x="0" 
               y="12" 
-              fill="#10b981" 
+              fill=${isSolved ? "#34d399" : "#10b981"} 
               fontSize="48" 
               fontWeight="900" 
               textAnchor="middle" 
               className="font-orbitron select-none pointer-events-none"
-              style=${{ textShadow: '0 0 15px rgba(16, 185, 129, 0.8)' }}
+              style=${{ textShadow: isSolved ? '0 0 25px #34d399' : '0 0 15px rgba(16, 185, 129, 0.8)' }}
             >
               ?
             </text>
