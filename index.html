@@ -4,35 +4,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Murder Mosaic - เกมรหัสลับโบราณ</title>
+    <title>Core Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Maitree:wght@400;700&family=Cinzel+Decorative:wght@700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         
         body {
-            font-family: 'Maitree', serif;
-            background: #050505;
-            color: #e2e8f0;
+            font-family: 'Orbitron', sans-serif;
+            background: #020617;
+            color: #f8fafc;
             overflow: hidden;
             margin: 0;
         }
 
-        .mystic-font {
-            font-family: 'Cinzel Decorative', cursive;
+        .puzzle-container {
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
-        .glow-filter {
-            filter: drop-shadow(0 0 8px rgba(220, 38, 38, 0.3));
+        @keyframes success-pulse {
+            0% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); }
+            50% { box-shadow: 0 0 60px rgba(16, 185, 129, 0.6); }
+            100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); }
         }
 
-        .unlock-anim {
-            animation: unlock-flare 1.5s ease-out forwards;
-        }
-
-        @keyframes unlock-flare {
-            0% { filter: brightness(1) blur(0px); transform: scale(1); }
-            50% { filter: brightness(2) blur(5px); transform: scale(1.02); }
-            100% { filter: brightness(1.1) blur(0px); transform: scale(1); }
+        .solved-glow {
+            animation: success-pulse 2s infinite;
         }
     </style>
     <script type="importmap">
@@ -43,8 +44,8 @@
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
     "lucide-react": "https://esm.sh/lucide-react@0.463.0",
     "htm": "https://esm.sh/htm@3.1.1",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.41.0"
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
   }
 }
 </script>

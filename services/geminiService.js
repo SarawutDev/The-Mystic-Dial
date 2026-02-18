@@ -1,38 +1,52 @@
 
-// คลังปริศนาแบบ Static ที่รวบรวมไว้สำหรับธีม Murder Mosaic
+import { GoogleGenAI, Type } from "@google/genai";
+
 const STATIC_CHALLENGES = [
   {
-    secret: "รอยเลือดที่พบในห้องครัว ไม่ใช่เลือดของเหยื่อเพียงคนเดียว",
-    hint: "จงตรวจสอบรอยกระเซ็นบนใบมีดให้ตรงกับทิศทางของแสง"
+    secret: "The backup core is active. Access key: 9-2-4-1.",
+    hint: "Align the security protocols to match the internal power levels."
   },
   {
-    secret: "นาฬิกาที่หยุดเดินในเวลาเที่ยงคืน คือหลักฐานชิ้นสุดท้ายของเขา",
-    hint: "ฟันเฟืองที่แตกหักต้องถูกจัดเรียงให้กลับมาสบกันอีกครั้ง"
+    secret: "Confidential Data: Project X is hidden in the false floor.",
+    hint: "Synchronize the suppression level with the main vault gauge."
   },
   {
-    secret: "จดหมายลาตายถูกเขียนขึ้นด้วยมือซ้าย ทั้งที่เขาถนัดขวา",
-    hint: "เงาสะท้อนในกระจกจะบอกความจริงที่ซ่อนอยู่หลังข้อความ"
-  },
-  {
-    secret: "กุญแจห้องปิดตายถูกซ่อนไว้ในแจกันที่ไม่มีใครกล้าแตะต้อง",
-    hint: "เรียงเศษกระเบื้องที่แตกกระจายให้กลายเป็นรูปทรงที่สมบูรณ์"
-  },
-  {
-    secret: "ความลับไม่ได้ตายไปพร้อมกับศพ แต่มันซ่อนอยู่ในรอยสักนั่น",
-    hint: "สัญลักษณ์ที่ขาดหายไปบนผิวหนัง ต้องถูกหมุนให้ตรงตำแหน่ง"
-  },
-  {
-    secret: "เสียงฝีเท้าในความมืดหยุดลงที่หน้าห้องหมายเลข 404",
-    hint: "เงาที่ทอดผ่านบานประตูจะเผยให้เห็นตัวตนของแขกที่ไม่ได้รับเชิญ"
-  },
-  {
-    secret: "ยาพิษไม่ได้อยู่ในไวน์ แต่อยู่ในน้ำแข็งที่ละลายหายไปแล้ว",
-    hint: "คราบผลึกที่หลงเหลืออยู่ตรงก้นแก้ว ต้องถูกส่องด้วยแสงสีเลือด"
+    secret: "Unauthorized access detected. Clearance level: GAMMA.",
+    hint: "Reset the CCTV monitoring before the lockdown is complete."
   }
 ];
 
-export async function generateSecretChallenge() {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  const randomIndex = Math.floor(Math.random() * STATIC_CHALLENGES.length);
-  return STATIC_CHALLENGES[randomIndex];
+export async function generateSecretChallenge(customTheme = "") {
+  if (!process.env.API_KEY) return STATIC_CHALLENGES[Math.floor(Math.random() * STATIC_CHALLENGES.length)];
+
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const themePrompt = customTheme 
+    ? `The theme for this discovery is: "${customTheme}". Make it very exciting and related to this theme.`
+    : "Generate a cryptic discovery found inside a high-tech corporate vault.";
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: `Generate a cryptic discovery (max 15 words) and a hint. ${themePrompt} Return in JSON. Language: Thai or English (as appropriate to theme).`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            secret: { type: Type.STRING },
+            hint: { type: Type.STRING },
+          },
+          required: ["secret", "hint"],
+        },
+      },
+    });
+
+    if (response.text) {
+      return JSON.parse(response.text.trim());
+    }
+  } catch (error) {
+    console.warn("Gemini API Error, using fallback.");
+  }
+
+  return STATIC_CHALLENGES[Math.floor(Math.random() * STATIC_CHALLENGES.length)];
 }
