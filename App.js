@@ -10,9 +10,14 @@ const App = () => {
   const [activeNodeIndex, setActiveNodeIndex] = useState(0);
   
   const SNAP_ANGLE = 90;
+  // ตำแหน่งเฉลย: หมุน 90 องศา จะนำค่า Index 3 (ค่าสุดท้ายใน Array เช่น 85%) มาไว้ที่ด้านบนสุด
+  const WINNING_ANGLE = 90;
 
   // ข้อมูลตามที่กำหนดมาเป๊ะๆ ห้ามเปลี่ยนเด็ดขาด
   const NODE_NAMES = ["SECURITY ALLOCATION DIAL – ROTATE LAYERS", "DATA VISIBILITY DIAL – ROTATE LAYERS", "EXPANSION SPEED DIAL – ROTATE LAYERS"];
+
+  // ตัวอักษรเฉลยประจำแต่ละวง
+  const NODE_SOLVED_CHAR = ["J", "S", "K"];
 
   const NODE_CONTENT = [
     {
@@ -32,11 +37,15 @@ const App = () => {
     }
   ];
 
-  const getRandomRotations = () => ({
-    [RingLayer.OUTER]: (Math.floor(Math.random() * 4)) * SNAP_ANGLE,
-    [RingLayer.MIDDLE]: (Math.floor(Math.random() * 4)) * SNAP_ANGLE,
-    [RingLayer.INNER]: 0, 
-  });
+  const getRandomRotations = () => {
+    // สุ่มตำแหน่ง 0, 180, 270 (ยกเว้น 90 ซึ่งเป็นเฉลย) เพื่อให้เกมเริ่มแบบยังไม่ชนะ
+    const angles = [0, 180, 270];
+    return {
+      [RingLayer.OUTER]: angles[Math.floor(Math.random() * angles.length)],
+      [RingLayer.MIDDLE]: 0, 
+      [RingLayer.INNER]: 0, 
+    };
+  };
 
   const [nodesData, setNodesData] = useState([
     { rotations: getRandomRotations(), content: NODE_CONTENT[0] },
@@ -60,7 +69,8 @@ const App = () => {
   };
 
   const handleDragStart = (layer, e) => {
-    if (layer === RingLayer.INNER) return;
+    if (layer === RingLayer.INNER || layer === RingLayer.MIDDLE) return;
+    
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
     setActiveLayer(layer);
@@ -123,9 +133,12 @@ const App = () => {
 
   const currentNode = nodesData[activeNodeIndex];
 
-  // ตรวจสอบว่าวงแหวนทุกชั้นตรงกันหรือไม่ (0 องศา หรือ 360 องศา)
-  const isSolved = currentNode.rotations[RingLayer.OUTER] % 360 === 0 && 
-                   currentNode.rotations[RingLayer.MIDDLE] % 360 === 0;
+  // แก้ไข logic การตรวจสอบ: ใช้สูตรหาค่าบวกของ Modulo 360 เพื่อรองรับค่าลบและการหมุนหลายรอบ
+  const normalizedRotation = ((Math.round(currentNode.rotations[RingLayer.OUTER] / SNAP_ANGLE) * SNAP_ANGLE % 360) + 360) % 360;
+  const isSolved = normalizedRotation === WINNING_ANGLE;
+
+  // ตัวอักษรที่จะแสดงตรงกลาง
+  const centerDisplayChar = isSolved ? NODE_SOLVED_CHAR[activeNodeIndex] : "?";
 
   return html`
     <div className="puzzle-container p-4 overflow-y-auto overflow-x-hidden">
@@ -134,13 +147,14 @@ const App = () => {
         ref=${containerRef}
         className=${`relative w-full aspect-square max-w-[320px] sm:max-w-[480px] lg:max-w-[580px] rounded-full border-[10px] sm:border-[16px] border-[#0c111d] bg-[#020617] shadow-[0_0_100px_rgba(0,0,0,0.9)] transition-all duration-700 mx-auto overflow-visible ${isSolved ? 'solved-glow' : ''}`}
       >
+        <!-- Indicator Line (ด้านบน 12 นาฬิกา) -->
+        <div className="absolute top-[-25px] left-1/2 translate-x-[-50%] w-[4px] h-[40px] bg-[#34d399] blur-[2px] z-50 opacity-50"></div>
+        
         <svg viewBox="0 0 500 500" className="w-full h-full touch-none" style=${{ overflow: 'visible' }}>
-          <!-- Grid Background Effect -->
           <defs>
             <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
               <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1"/>
             </pattern>
-            <!-- Glow Filters -->
             <filter id="core-glow" x="-100%" y="-100%" width="300%" height="300%">
               <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
               <feComposite in="SourceGraphic" in2="blur" operator="over" />
@@ -176,18 +190,10 @@ const App = () => {
             onDragStart=${handleDragStart}
           />
           
-          <!-- Static High-Tech Question Mark Center Piece -->
           <g transform="translate(250, 250)">
-            <!-- Decorative Ring (Static) -->
             <circle r="44" fill="none" stroke=${isSolved ? "#34d399" : "#10b981"} strokeWidth="0.5" strokeDasharray="4,8" opacity="0.3" />
-            
-            <!-- Main Circular Base -->
             <circle r="36" fill="#020617" stroke=${isSolved ? "#34d399" : "#10b981"} strokeWidth=${isSolved ? "3" : "2"} filter="url(#core-glow)" />
-            
-            <!-- Energy Field (Static) -->
             <circle r="32" fill=${isSolved ? "#064e3b" : "#064e3b"} opacity=${isSolved ? "0.8" : "0.5"} />
-
-            <!-- Question Mark Symbol (Static) -->
             <text 
               x="0" 
               y="12" 
@@ -198,13 +204,12 @@ const App = () => {
               className="font-orbitron select-none pointer-events-none"
               style=${{ textShadow: isSolved ? '0 0 25px #34d399' : '0 0 15px rgba(16, 185, 129, 0.8)' }}
             >
-              ?
+              ${centerDisplayChar}
             </text>
           </g>
         </svg>
       </div>
 
-      <!-- Navigation Buttons -->
       <div className="mt-12 flex flex-col gap-3 w-full max-w-lg mx-auto">
         ${nodesData.map((node, i) => html`
           <button 

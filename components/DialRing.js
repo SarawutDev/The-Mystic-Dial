@@ -14,9 +14,9 @@ const DialRing = ({
   labels,
   onDragStart
 }) => {
-  const isInner = layer === RingLayer.INNER;
+  // วงแหวนชั้นใน (INNER) และชั้นกลาง (MIDDLE) จะเป็นแบบนิ่ง (Static)
+  const isStatic = layer === RingLayer.INNER || layer === RingLayer.MIDDLE;
 
-  // ปรับสไตล์ให้ดูทันสมัยและอ่านง่ายตามภาพ
   const styles = {
     [RingLayer.OUTER]: { start: "#0f172a", end: "#020617", text: "#f8fafc", fontSize: "28px" },
     [RingLayer.MIDDLE]: { start: "#1e293b", end: "#0f172a", text: "#cbd5e1", fontSize: "18px" },
@@ -25,24 +25,14 @@ const DialRing = ({
 
   const config = styles[layer] || styles[RingLayer.OUTER];
 
-  // คำนวณตำแหน่งของตัวอักษร 4 ทิศทาง
   const labelElements = useMemo(() => {
     const list = labels || ["", "", "", ""];
     return list.map((text, i) => {
-      const angle = (i * 90) - 90; // เริ่มที่ 12 นาฬิกา (-90 องศา)
+      const angle = (i * 90) - 90;
       const rad = (angle * Math.PI) / 180;
-      
-      // คำนวณตำแหน่ง x, y ตรงกึ่งกลางความหนาของวงแหวน
       const x = 250 + radius * Math.cos(rad);
       const y = 250 + radius * Math.sin(rad);
-      
-      // การหมุนตัวอักษร: ให้ด้านล่างหันเข้าหาจุดศูนย์กลาง
-      // ทิศทาง 0 องศา (ขวา) -> หมุน 90
-      // ทิศทาง 90 องศา (ล่าง) -> หมุน 180
-      // ทิศทาง 180 องศา (ซ้าย) -> หมุน 270
-      // ทิศทาง 270 องศา (บน) -> หมุน 0
       const textRotation = angle + 90;
-
       return { text, x, y, rotation: textRotation };
     });
   }, [labels, radius]);
@@ -51,9 +41,9 @@ const DialRing = ({
 
   return html`
     <g 
-      className=${`${isInner ? 'cursor-default' : 'cursor-pointer'} transition-opacity duration-300 opacity-90 hover:opacity-100 touch-none`}
-      onMouseDown=${(e) => !isInner && onDragStart(layer, e)}
-      onTouchStart=${(e) => !isInner && onDragStart(layer, e)}
+      className=${`${isStatic ? 'cursor-default' : 'cursor-pointer'} transition-opacity duration-300 opacity-90 hover:opacity-100 touch-none`}
+      onMouseDown=${(e) => !isStatic && onDragStart(layer, e)}
+      onTouchStart=${(e) => !isStatic && onDragStart(layer, e)}
     >
       <defs>
         <linearGradient id=${gradId} x1="0%" y1="0%" x2="100%" y2="100%">
@@ -70,7 +60,6 @@ const DialRing = ({
         className="transition-all duration-500"
       />
 
-      <!-- เส้นแบ่งเขตวงแหวนเพื่อให้ดูเหมือน Shards ในรูป -->
       <circle cx="250" cy="250" r=${radius + thickness/2} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
       <circle cx="250" cy="250" r=${radius - thickness/2} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
 
@@ -81,7 +70,6 @@ const DialRing = ({
           transition: isDragging ? 'none' : 'transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)'
         }}
       >
-        <!-- Tick Marks Decor (เส้นขีดๆ รอบวง) -->
         ${Array.from({length: 24}).map((_, i) => {
           const deg = i * 15;
           const rad = (deg - 90) * (Math.PI / 180);
@@ -100,7 +88,6 @@ const DialRing = ({
           `
         })}
 
-        <!-- Labels จัดวางแบบ Radial ตามภาพตัวอย่าง -->
         ${labelElements.map((item, i) => html`
           <text
             key=${i}
