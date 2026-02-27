@@ -8,6 +8,9 @@ const html = htm.bind(React.createElement);
 
 const App = () => {
   const [activeNodeIndex, setActiveNodeIndex] = useState(0);
+  const [popupStage, setPopupStage] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
+  const wasSolvedRef = useRef(false); // ใช้เช็คขอบเขตจากไม่ solved -> solved
   
   const SNAP_ANGLE = 90;
   // ตำแหน่งเฉลย: หมุน 90 องศา จะนำค่า Index 3 (ค่าสุดท้ายใน Array เช่น 85%) มาไว้ที่ด้านบนสุด
@@ -140,6 +143,24 @@ const App = () => {
   // ตัวอักษรที่จะแสดงตรงกลาง
   const centerDisplayChar = isSolved ? NODE_SOLVED_CHAR[activeNodeIndex] : "?";
 
+  // เด้ง popup ทุกครั้งที่ dial ปัจจุบันเปลี่ยนจาก “ไม่ใช่ J/S/K” -> “เป็น J/S/K”
+  useEffect(() => {
+    if (isSolved && !wasSolvedRef.current) {
+      const stage = Math.min(activeNodeIndex + 1, 3); // 0=J,1=S,2=K
+      setPopupStage(stage);
+      setShowPopup(true);
+      wasSolvedRef.current = true;
+    }
+    if (!isSolved && wasSolvedRef.current) {
+      wasSolvedRef.current = false;
+    }
+  }, [isSolved, activeNodeIndex]);
+
+  // เปลี่ยน node เมื่อกดปุ่มด้านล่าง ให้ถือว่าเริ่มสถานะ solved ใหม่
+  useEffect(() => {
+    wasSolvedRef.current = false;
+  }, [activeNodeIndex]);
+
   return html`
     <div className="puzzle-container p-4 overflow-y-auto overflow-x-hidden">
       <!-- Responsive Dial Wrapper -->
@@ -225,6 +246,60 @@ const App = () => {
       <div className="mt-8 text-[8px] sm:text-[9px] text-slate-800 tracking-[0.5em] uppercase font-bold opacity-30 text-center px-4">
         QUERY INTERFACE ACTIVE // SYSTEM 3.1.0
       </div>
+
+      ${showPopup && popupStage !== null && html`
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="popup-panel max-w-md w-[90%] bg-slate-950/95 border border-emerald-500/40 rounded-3xl p-6 space-y-4 shadow-[0_0_60px_rgba(16,185,129,0.4)]">
+            ${popupStage === 1 && html`
+              <div>
+                <div className="text-[10px] tracking-[0.4em] uppercase text-slate-400 mb-2">
+                  Extracted Communication Fragment
+                </div>
+                <p className="text-slate-100 text-sm font-serif">“Proceed.”</p>
+                <p className="text-slate-100 text-sm font-serif">“Authorize deployment.”</p>
+                <p className="text-slate-100 text-sm font-serif">“Maintain stability.”</p>
+                <p className="text-slate-400 text-xs pt-2 font-serif">ไม่มีชื่อผู้สั่งการ</p>
+                <p className="text-slate-400 text-xs font-serif">มีเพียงการตอบรับ</p>
+              </div>
+            `}
+
+            ${popupStage === 2 && html`
+              <div>
+                <div className="text-[10px] tracking-[0.4em] uppercase text-emerald-400 mb-2">
+                  Ω–Directive
+                </div>
+                <p className="text-slate-100 text-sm font-serif">“Confirmed.”</p>
+                <p className="text-slate-100 text-sm font-serif">“Executed.”</p>
+                <p className="text-slate-100 text-sm font-serif">“Access granted.”</p>
+                <p className="text-slate-400 text-xs pt-2 font-serif">ในทุกคำสั่งที่ถูกดำเนินการ</p>
+                <p className="text-slate-400 text-xs font-serif">ต้นทางถูกระบุเพียงรหัส:</p>
+              </div>
+            `}
+
+            ${popupStage === 3 && html`
+              <div>
+                <div className="text-[10px] tracking-[0.4em] uppercase text-emerald-400 mb-2">
+                  Ω–Directive
+                </div>
+                <p className="text-slate-100 text-sm font-serif">ไม่มีตัวตน</p>
+                <p className="text-slate-100 text-sm font-serif">ไม่มีตำแหน่ง</p>
+                <p className="text-slate-100 text-sm font-serif">ไม่มีการปรากฏในโครงสร้างภายนอก</p>
+                <p className="text-slate-400 text-xs pt-2 font-serif">ผู้ดำเนินการไม่เคยตั้งคำถาม</p>
+                <p className="text-slate-400 text-xs font-serif">เขาเพียงเชื่อว่ากำลังปกป้องระบบ</p>
+                <p className="text-slate-400 text-xs font-serif">แต่ระบบที่เขาปกป้อง</p>
+                <p className="text-slate-400 text-xs font-serif">อาจไม่ใช่สิ่งที่เขาเข้าใจ</p>
+              </div>
+            `}
+
+            <button
+              onClick=${() => setShowPopup(false)}
+              className="mt-4 w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-[10px] font-black tracking-[0.4em] uppercase text-slate-300 border border-slate-700"
+            >
+              CONTINUE
+            </button>
+          </div>
+        </div>
+      `}
     </div>
   `;
 };

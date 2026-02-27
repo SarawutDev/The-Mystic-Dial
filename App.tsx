@@ -10,6 +10,9 @@ const App: React.FC = () => {
   const [solved, setSolved] = useState(false);
   const [secret, setSecret] = useState<SecretChallenge>({ secret: "", hint: "" });
   const [showHint, setShowHint] = useState(false);
+  const [popupStage, setPopupStage] = useState<number | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
+  const [triggeredLayers, setTriggeredLayers] = useState<RingLayer[]>([]);
   
   // Mystery Palette
   const COLORS = {
@@ -67,19 +70,36 @@ const App: React.FC = () => {
   const handleDragEnd = useCallback(() => {
     const layer = activeLayer;
     if (layer === null) return;
+
     setRotations(prev => {
       const currentRot = prev[layer];
       const snapped = Math.round(currentRot / 120) * 120;
       const nextRotations = { ...prev, [layer]: snapped };
-      
-      const isAligned = Object.values(nextRotations).every((rot: number) => {
+
+      const allAligned = Object.values(nextRotations).every((rot: number) => {
         const normalized = ((rot % 360) + 360) % 360;
         return normalized < 4 || normalized > 356;
       });
-      
-      if (isAligned) setSolved(true);
+
+      if (allAligned) {
+        setSolved(true);
+      }
+
       return nextRotations;
     });
+
+    // ใช้ลำดับวงในการเด้ง popup: วงไหนถูก "ครั้งแรก" จะนับเป็นสเตจต่อไป
+    setTriggeredLayers(prev => {
+      if (prev.includes(layer)) {
+        return prev;
+      }
+      const next = [...prev, layer];
+      const stage = Math.min(next.length, 3);
+      setPopupStage(stage);
+      setShowPopup(true);
+      return next;
+    });
+
     setActiveLayer(null);
   }, [activeLayer]);
 
@@ -102,6 +122,9 @@ const App: React.FC = () => {
     setLoading(true);
     setSolved(false);
     setShowHint(false);
+    setPopupStage(null);
+    setShowPopup(false);
+    setTriggeredLayers([]);
     
     const data = await generateSecretChallenge();
     setSecret(data);
@@ -231,6 +254,61 @@ const App: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Popup แสดงข้อความตามลำดับการหมุนถูก */}
+      {showPopup && popupStage !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+          <div className="max-w-md w-[90%] bg-stone-950/95 border border-red-900/40 rounded-3xl p-6 space-y-4 shadow-2xl">
+            {popupStage === 1 && (
+              <>
+                <div className="text-[10px] tracking-[0.4em] uppercase text-stone-500">
+                  Extracted Communication Fragment
+                </div>
+                <p className="text-stone-200 text-sm font-serif">“Proceed.”</p>
+                <p className="text-stone-200 text-sm font-serif">“Authorize deployment.”</p>
+                <p className="text-stone-200 text-sm font-serif">“Maintain stability.”</p>
+                <p className="text-stone-400 text-xs pt-2 font-serif">ไม่มีชื่อผู้สั่งการ</p>
+                <p className="text-stone-400 text-xs font-serif">มีเพียงการตอบรับ</p>
+              </>
+            )}
+
+            {popupStage === 2 && (
+              <>
+                <div className="text-[10px] tracking-[0.4em] uppercase text-red-700">
+                  Ω–Directive
+                </div>
+                <p className="text-stone-200 text-sm font-serif">“Confirmed.”</p>
+                <p className="text-stone-200 text-sm font-serif">“Executed.”</p>
+                <p className="text-stone-200 text-sm font-serif">“Access granted.”</p>
+                <p className="text-stone-400 text-xs pt-2 font-serif">ในทุกคำสั่งที่ถูกดำเนินการ</p>
+                <p className="text-stone-400 text-xs font-serif">ต้นทางถูกระบุเพียงรหัส:</p>
+              </>
+            )}
+
+            {popupStage === 3 && (
+              <>
+                <div className="text-[10px] tracking-[0.4em] uppercase text-red-700">
+                  Ω–Directive
+                </div>
+                <p className="text-stone-200 text-sm font-serif">ไม่มีตัวตน</p>
+                <p className="text-stone-200 text-sm font-serif">ไม่มีตำแหน่ง</p>
+                <p className="text-stone-200 text-sm font-serif">ไม่มีการปรากฏในโครงสร้างภายนอก</p>
+                <p className="text-stone-400 text-xs pt-2 font-serif">ผู้ดำเนินการไม่เคยตั้งคำถาม</p>
+                <p className="text-stone-400 text-xs font-serif">เขาเพียงเชื่อว่ากำลังปกป้องระบบ</p>
+                <p className="text-stone-400 text-xs font-serif">แต่ระบบที่เขาปกป้อง</p>
+                <p className="text-stone-400 text-xs font-serif">อาจไม่ใช่สิ่งที่เขาเข้าใจ</p>
+              </>
+            )}
+
+            <button
+              onClick={() => setShowPopup(false)}
+              className="mt-4 w-full py-3 rounded-2xl bg-stone-900 hover:bg-stone-800 text-[10px] font-black tracking-[0.4em] uppercase text-stone-400 border border-stone-800/60"
+            >
+              CONTINUE
+            </button>
+          </div>
+        </div>
+      )}
 
       <footer className="mt-12 text-stone-900 text-[8px] tracking-[1.5em] uppercase font-bold opacity-10">
         DARKNESS IS THE ONLY WITNESS

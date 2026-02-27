@@ -15,6 +15,10 @@
             color: #f8fafc;
             overflow: hidden;
             margin: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
         .puzzle-container {
@@ -34,6 +38,25 @@
 
         .solved-glow {
             animation: success-pulse 2s infinite;
+        }
+
+        @keyframes popup-rise {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.96);
+            }
+            60% {
+                opacity: 1;
+                transform: translateY(0) scale(1.02);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .popup-panel {
+            animation: popup-rise 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
         }
     </style>
     <script type="importmap">
